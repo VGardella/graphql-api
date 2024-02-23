@@ -59,7 +59,6 @@ const DeletionResultType = new GraphQLObjectType({
     fields: {
       success: { type: GraphQLBoolean },
       message: { type: GraphQLString },
-      deleteMessage: { type: GraphQLString }
     }
 });
 
@@ -74,7 +73,7 @@ const folderInfoType = new GraphQLObjectType({
     }
 })
 
-TC.addFields({ folderInfo: new GraphQLList(folderInfoType) });
+TC.addFields({ folderInfo: new GraphQLList(folderInfoType) }); // se usa GraphQLList porque el resultado es una lista
 
 
 // Las queries para los mensajes:
