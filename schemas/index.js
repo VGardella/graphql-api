@@ -1,5 +1,6 @@
 const { GraphQLObjectType, GraphQLSchema } = require('graphql');
-const MessageQueries = require('./messages.schema');
+const MessageQueries = require('./messages.schema').query;
+const MessageMutations = require('./messages.schema').mutations;
 const FoldersQueries = require('./folders.schema');
 
 const indexQuery = new GraphQLObjectType({
@@ -8,6 +9,12 @@ const indexQuery = new GraphQLObjectType({
     fields: Object.assign(MessageQueries, FoldersQueries)
 })
 
-const schema = new GraphQLSchema({ query: indexQuery })
+const indexMutation = new GraphQLObjectType({
+    name: 'Mutations',
+    description: 'Modificaion de la base de datos',
+    fields: MessageMutations
+})
+
+const schema = new GraphQLSchema({ query: indexQuery, mutation: indexMutation });
 
 module.exports = schema;
