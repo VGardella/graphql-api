@@ -14,15 +14,6 @@ const getFolders = require('../resolver/folders.resolver');
 
 const TC = composeWithMongoose(Folders, {});
 
-// Definimos el objeto que nos devuelve la query:
-// const folderObject = new GraphQLObjectType({
-//     name: 'folderObject',
-//     fields: {
-//         data: { type: new GraphQLList(TC.getType())}, // !!!!!!!!!!!
-//         count: { type: GraphQLInt }
-//     }
-// })
-
 // Queries:
 const query = {
     folders_getFolder: {
