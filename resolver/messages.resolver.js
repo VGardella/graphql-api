@@ -2,11 +2,6 @@ const mongoose = require('mongoose');
 const Message = mongoose.model('challenge_messages');
 
 const getMessages = async (parents, args, context, info) => {
-    const mailList = await Message.find({});
-    return mailList;
-}
-
-const filterMessages = async (parents, args, context, info) => {
     let filters = args;
     let query = { $and: [] };
     let mailList;
@@ -39,7 +34,7 @@ const filterMessages = async (parents, args, context, info) => {
         })
     };
 
-    if (Object.keys(filters).length === 0) {
+    if (!filters.from && !filters.to && !filters.subject) {
         delete query.$and;
     }
 
@@ -47,59 +42,62 @@ const filterMessages = async (parents, args, context, info) => {
     if (!filters.page && filters.limit || filters.page && !filters.limit) {
         return 'Para paginado de los mensajes especificar número de página (page) y número de mensajes (limit)'
     }
-    
+
     if (filters.page && filters.limit) {
-        mails = (parseInt(page)-1)*parseInt(limit);
-        console.log(mails)
-    }
-
-    try {
-        if (filters.page && filters.limit) {
-            console.log(filters.page)
-            console.log(filters.limit)
-            const mailPage = await Message.aggregate([
-                { $match: query },
-                { $lookup : {
-                        "from" : "challenge_folders",
-                        "localField" : "folder",
-                        "foreignField" : "name",
-                        "as" : "folderInfo"
-                    }
-                },
-                { $skip: mails },
-                { $limit: parseInt(limit) }
-            ])
-    
-            const count = await Message.aggregate([
-                { $match: query },
-                { $count: "count" }
-            ])
-    
-            mailList = {
-                count: count[0].count,
-                page: parseInt(page),
-                data: mailPage
-            };
-        } else {
-            mailList = await Message.aggregate([
-                { $match: query },
-                { $lookup : {
-                        "from" : "challenge_folders",
-                        "localField" : "folder",
-                        "foreignField" : "name",
-                        "as" : "folderInfo"
-                    }
+        mails = (filters.page-1)*filters.limit;
+        const mailPage = await Message.aggregate([
+            { $match: query },
+            { $lookup : {
+                    "from" : "challenge_folders",
+                    "localField" : "folder",
+                    "foreignField" : "name",
+                    "as" : "folderInfo"
                 }
-            ]);
-        }
+            },
+            { $skip: mails },
+            { $limit: filters.limit }
+        ])
 
-        if (mailList.length === 0) {
-            return 'No se encontraron mensajes.'
-        }
-        return mailList    
-    } catch (err) {
-        return 'No se pudo realizar la busqueda.'
+        const count = await Message.aggregate([
+            { $match: query },
+            { $count: "count" }
+        ])
+
+        mailList = {
+            count: count[0].count,
+            page: filters.page,
+            data: mailPage
+        };
+
+    } else {
+        mailPage = await Message.aggregate([
+            { $match: query },
+            { $lookup : {
+                    "from" : "challenge_folders",
+                    "localField" : "folder",
+                    "foreignField" : "name",
+                    "as" : "folderInfo"
+                }
+            }
+        ]);
+
+        const count = await Message.aggregate([
+            { $match: query },
+            { $count: "count" }
+        ])
+        
+        mailList = {
+            count: count[0].count,
+            page: 1,
+            data: mailPage
+        };
     }
+
+    if (mailList.length === 0) {
+        return 'No se encontraron mensajes.'
+    }
+
+    return mailList    
 }
 
 
@@ -110,7 +108,7 @@ const addMessage = async (parents, args, context, info) => {
         const newMessage = new Message(message);
         await newMessage.save()
         return 'Mensaje guardado.'
-    }
+        }
     catch (err) {
         return `Error al guardar el mensaje: ${err}`;
     }
@@ -141,4 +139,4 @@ const deleteMessage = async (parents, args, context, info) => {
 }
 
 
-module.exports = { getMessages, filterMessages, addMessage, deleteMessage };
+module.exports = { getMessages, addMessage, deleteMessage };
