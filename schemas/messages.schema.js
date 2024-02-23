@@ -1,5 +1,14 @@
 const mongoose = require('mongoose');
-const { GraphQLObjectType, GraphQLList, GraphQLString } = require('graphql');
+const {
+    GraphQLList,
+    GraphQLObjectType,
+    GraphQLBoolean,
+    GraphQLInt,
+    GraphQLNonNull,
+    GraphQLFloat,
+    GraphQLString,
+    GraphQLInputObjectType
+} = require('graphql')
 const { composeWithMongoose } = require('graphql-compose-mongoose');
 
 const fromSchema = new mongoose.Schema({
@@ -19,32 +28,40 @@ const messageSchema = new mongoose.Schema({
     important: { type: Boolean },
     hasAttachments: { type: Boolean },
     labels: [{ type: String }],
-    folder: { type: String }
+    folder: { type: String },
+    folderInfo: [{ _id: String, name: String, title: String, icon: String}]
 });
 
 const Message = mongoose.model('challenge_messages', messageSchema);
-const getMessages = require('../resolver/messages.resolver.js');
+const resolver = require('../resolver/messages.resolver.js');
 
 const TC = composeWithMongoose(Message, {});
-
-// El tipo de objeto que devuelve nuestra query
-// const messageObject = new GraphQLObjectType({
-//     name: 'messageObject',
-//     fields: {
-//         messages: {
-//             type: new GraphQLList(TC.getType())
-//         }
-//     }
-// })
-
 
 
 // Las queries para los mensajes:
 const query = {
-    messages_GetMessages : {
+    messages_GetMessages: {
         type: new GraphQLList(TC.getType()),
         description: 'Obtencion de mensaje',
-        resolve: getMessages
+        resolve: resolver.getMessages
+    },
+    messages_filterMessages: {
+        type: new GraphQLList(TC.getType()),
+        description: 'Filtrado de mensaje',
+        args: {
+            from: { type: GraphQLString },
+            to: { type: GraphQLString },
+            subject: { type: GraphQLString },
+            message: { type: GraphQLString },
+            time: { type: GraphQLString },
+            read: { type: GraphQLBoolean },
+            starred: { type: GraphQLBoolean },
+            important: { type: GraphQLBoolean },
+            hasAttachments: { type: GraphQLBoolean },
+            labels: { type: GraphQLString },
+            folder: { type: GraphQLString }
+        },
+        resolve: resolver.filterMessages
     }
 }
 
