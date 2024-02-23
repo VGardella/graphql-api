@@ -28,8 +28,7 @@ const messageSchema = new mongoose.Schema({
     important: { type: Boolean },
     hasAttachments: { type: Boolean },
     labels: [{ type: String }],
-    folder: { type: String },
-    folderInfo: [{ _id: String, name: String, title: String, icon: String}]
+    folder: { type: String }
 });
 
 const Message = mongoose.model('challenge_messages', messageSchema);
@@ -45,6 +44,37 @@ const messageInputType = new GraphQLInputObjectType({
         email: { type: GraphQLString }
     }
 });
+
+// const paginatedMessages = new GraphQLObjectType({
+//     name: 'paginatedObject',
+//     fields: {
+//         numberOfMessages: { type: GraphQLInt },
+//         pageNumber: { type: GraphQLInt },
+//         messages: { type: new GraphQLList(TC.getType()) }
+//     }
+// })
+
+const DeletionResultType = new GraphQLObjectType({
+    name: 'DeletionResult',
+    fields: {
+      success: { type: GraphQLBoolean },
+      message: { type: GraphQLString },
+      deleteMessage: { type: GraphQLString }
+    }
+});
+
+const folderInfoType = new GraphQLObjectType({
+    name: 'folderInfoType',
+    description: 'Informacion de la carpeta de origen.',
+    fields: {
+        _id: { type: GraphQLString },
+        name: { type: GraphQLString },
+        title: { type: GraphQLString },
+        icon: { type: GraphQLString },
+    }
+})
+
+TC.addFields({ folderInfo: new GraphQLList(folderInfoType) });
 
 
 // Las queries para los mensajes:
@@ -68,7 +98,9 @@ const query = {
             important: { type: GraphQLBoolean },
             hasAttachments: { type: GraphQLBoolean },
             labels: { type: GraphQLString },
-            folder: { type: GraphQLString }
+            folder: { type: GraphQLString },
+            page: { type: GraphQLInt },
+            limit: { type: GraphQLInt }
         },
         resolve: resolver.filterMessages
     }
@@ -92,6 +124,13 @@ const mutations = {
             folder: { type: GraphQLString }
         },
         resolve: resolver.addMessage
+    },
+    messages_deleteMessage: {
+        type: DeletionResultType,
+        args: {
+            _id: { type: GraphQLString },
+        },
+        resolve: resolver.deleteMessage
     }
 }
 
