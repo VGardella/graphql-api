@@ -37,6 +37,15 @@ const resolver = require('../resolver/messages.resolver.js');
 
 const TC = composeWithMongoose(Message, {});
 
+// Definicion de Objetos:
+const messageInputType = new GraphQLInputObjectType({
+    name: 'MessageInput',
+    fields: {
+        name: { type: GraphQLString },
+        email: { type: GraphQLString }
+    }
+});
+
 
 // Las queries para los mensajes:
 const query = {
@@ -65,4 +74,25 @@ const query = {
     }
 }
 
-module.exports = query;
+const mutations = {
+    messages_addMessage: {
+        type: TC.getType(),
+        description: 'Agregar mensaje',
+        args: {
+            from: { type: messageInputType },
+            to: { type: new GraphQLList(messageInputType) },
+            subject: { type: GraphQLString },
+            message: { type: GraphQLString },
+            time: { type: GraphQLString },
+            read: { type: GraphQLBoolean },
+            starred: { type: GraphQLBoolean },
+            important: { type: GraphQLBoolean },
+            hasAttachments: { type: GraphQLBoolean },
+            labels: { type: new GraphQLList(GraphQLString) },
+            folder: { type: GraphQLString }
+        },
+        resolve: resolver.addMessage
+    }
+}
+
+module.exports = { query, mutations };

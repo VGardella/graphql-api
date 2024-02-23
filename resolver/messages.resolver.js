@@ -102,4 +102,19 @@ const filterMessages = async (parents, args, context, info) => {
     }
 }
 
-module.exports = { getMessages, filterMessages };
+
+const addMessage = async (parents, args, context, info) => {
+    let message = args;
+
+    try {
+        const newMessage = new Message(message);
+        await newMessage.save()
+        return 'Mensaje guardado.'
+    }
+    catch (err) {
+        return `Error al guardar el mensaje: ${err}`;
+    }
+}
+
+
+module.exports = { getMessages, filterMessages, addMessage };
