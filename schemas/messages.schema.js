@@ -5,7 +5,6 @@ const {
     GraphQLBoolean,
     GraphQLInt,
     GraphQLNonNull,
-    GraphQLFloat,
     GraphQLString,
     GraphQLInputObjectType
 } = require('graphql')
@@ -36,7 +35,7 @@ const resolver = require('../resolver/messages.resolver.js');
 
 const TC = composeWithMongoose(Message, {});
 
-// Definicion de Objetos:
+// Definicion de Objetos (como va a ser la respuet a mi query):
 const messageInputType = new GraphQLInputObjectType({
     name: 'MessageInput',
     fields: {
@@ -45,14 +44,23 @@ const messageInputType = new GraphQLInputObjectType({
     }
 });
 
-// const paginatedMessages = new GraphQLObjectType({
-//     name: 'paginatedObject',
-//     fields: {
-//         numberOfMessages: { type: GraphQLInt },
-//         pageNumber: { type: GraphQLInt },
-//         messages: { type: new GraphQLList(TC.getType()) }
-//     }
-// })
+const paginatedMessages = new GraphQLObjectType({
+    name: 'paginatedObject',
+    fields: {
+        count: { type: GraphQLInt },
+        page: { type: GraphQLInt },
+        data: { type: new GraphQLList(TC.getType()) } // se devuelve una lista con los campos definidos en TC
+    }
+});
+
+const addedMessage = new GraphQLObjectType({
+    name: 'postingResult',
+    fields: {
+        success: { type: GraphQLBoolean },
+        message: { type: GraphQLString },
+        messageId: { type: GraphQLString }
+    }
+})
 
 const DeletionResultType = new GraphQLObjectType({
     name: 'DeletionResult',
@@ -78,49 +86,26 @@ TC.addFields({ folderInfo: new GraphQLList(folderInfoType) }); // se usa GraphQL
 
 // Las queries para los mensajes:
 const query = {
-    messages_GetMessages: {
-        type: new GraphQLList(TC.getType()),
-        description: 'Obtencion de mensaje',
-        resolve: resolver.getMessages
-    },
-    messages_filterMessages: {
-        type: new GraphQLList(TC.getType()),
+    messages_getMessages: {
+        type: paginatedMessages,
         description: 'Filtrado de mensaje',
         args: {
             from: { type: GraphQLString },
             to: { type: GraphQLString },
             subject: { type: GraphQLString },
-            message: { type: GraphQLString },
-            time: { type: GraphQLString },
-            read: { type: GraphQLBoolean },
-            starred: { type: GraphQLBoolean },
-            important: { type: GraphQLBoolean },
-            hasAttachments: { type: GraphQLBoolean },
-            labels: { type: GraphQLString },
-            folder: { type: GraphQLString },
             page: { type: GraphQLInt },
             limit: { type: GraphQLInt }
         },
-        resolve: resolver.filterMessages
+        resolve: resolver.getMessages
     }
 }
 
 const mutations = {
     messages_addMessage: {
-        type: TC.getType(),
+        type: addedMessage,
         description: 'Agregar mensaje',
         args: {
-            from: { type: messageInputType },
-            to: { type: new GraphQLList(messageInputType) },
-            subject: { type: GraphQLString },
-            message: { type: GraphQLString },
-            time: { type: GraphQLString },
-            read: { type: GraphQLBoolean },
-            starred: { type: GraphQLBoolean },
-            important: { type: GraphQLBoolean },
-            hasAttachments: { type: GraphQLBoolean },
-            labels: { type: new GraphQLList(GraphQLString) },
-            folder: { type: GraphQLString }
+            message: { type: new GraphQLNonNull(TC.getInputType())}
         },
         resolve: resolver.addMessage
     },
