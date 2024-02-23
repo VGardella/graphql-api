@@ -112,7 +112,7 @@ const mutations = {
     messages_deleteMessage: {
         type: DeletionResultType,
         args: {
-            _id: { type: GraphQLString },
+            _id: { type: new GraphQLNotNull(GraphQLString) },
         },
         resolve: resolver.deleteMessage
     }
