@@ -102,15 +102,24 @@ const getMessages = async (parents, args, context, info) => {
 
 
 const addMessage = async (parents, args, context, info) => {
-    let message = args;
+    let message = args.message;
 
     try {
         const newMessage = new Message(message);
         await newMessage.save()
-        return 'Mensaje guardado.'
+        
+        if (newMessage._id) {
+            return {
+                success: true,
+                message: 'El mensaje se guardo correctmente.',
+                messageId: newMessage._id
+            }
+        } else {
+            throw new Error('El mensaje no pudo guardarse.')
         }
-    catch (err) {
-        return `Error al guardar el mensaje: ${err}`;
+    } catch (err) {
+        console.log('Error al guardar el mensaje: ', err);
+        throw new Error('Error al guardar el mensaje.', status: 500)
     }
 }
 
