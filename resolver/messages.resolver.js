@@ -117,4 +117,28 @@ const addMessage = async (parents, args, context, info) => {
 }
 
 
-module.exports = { getMessages, filterMessages, addMessage };
+const deleteMessage = async (parents, args, context, info) => {
+    let messageId = args;
+
+    try {
+        const deleteMessage = await Message.findByIdAndDelete(messageId);
+        if (deleteMessage) {
+            return {
+                success: true,
+                message: 'El elemento fue eliminado exitosamente',
+                deleteMessage
+            }
+        } else if (deleteMessage === null) {
+            return {
+                success: false,
+                message: 'El elemento no pudo ser eliminado'
+            }
+        }    
+    }
+    catch (err) {
+        return err
+    }
+}
+
+
+module.exports = { getMessages, filterMessages, addMessage, deleteMessage };
