@@ -119,7 +119,7 @@ const addMessage = async (parents, args, context, info) => {
         }
     } catch (err) {
         console.log('Error al guardar el mensaje: ', err);
-        throw new Error('Error al guardar el mensaje.', status: 500)
+        throw new Error('Error al guardar el mensaje.')
     }
 }
 
