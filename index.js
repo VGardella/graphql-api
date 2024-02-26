@@ -6,7 +6,7 @@ const schema = require('./schemas/index.js');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-mongoose.connect('mongodb://localhost:27017/local')
+mongoose.connect('mongodb://192.168.0.14:27017/local')
     .then(() => {
         console.log('Conexion exitosa a la base de datos');
     })
